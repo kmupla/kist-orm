@@ -3,7 +3,7 @@ plugins {
     kotlin("jvm")
 }
 
-group = "io.rss.knative.tools.kistorm"
+group = "io.knative.kistorm"
 version = "1.0-SNAPSHOT"
 
 publishing {

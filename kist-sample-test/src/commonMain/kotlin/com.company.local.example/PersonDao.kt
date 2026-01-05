@@ -2,9 +2,9 @@ package com.company.local.example
 
 import com.company.local.example.model.Person
 import com.company.local.example.model.PersonMinDto
-import io.rss.knative.tools.kist.Dao
-import io.rss.knative.tools.kist.KistDao
-import io.rss.knative.tools.kist.Query
+import io.knative.kist.Dao
+import io.knative.kist.KistDao
+import io.knative.kist.Query
 
 @Dao
 interface PersonDao: KistDao<Person, Int> {

@@ -1,9 +1,10 @@
-plugins {
+ plugins {
     kotlin("multiplatform")
-//    kotlin("plugin.serialization")
+    alias(libs.plugins.ksp)
+    id("dev.mokkery") version "3.0.0"
 }
 
-group = "io.rss.knative.tools.kistorm"
+group = "io.knative.kistorm"
 version = "1.0-SNAPSHOT"
 
 kotlin {
@@ -24,8 +25,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-//                implementation(project(":webviewkt"))
 //                implementation(libs.kotlinxSerializationJson)
+                implementation("co.touchlab:kermit:2.0.8")
             }
         }
         val commonTest by getting {
@@ -38,16 +39,30 @@ kotlin {
 
             dependencies {
                 implementation("co.touchlab:sqliter-driver:1.3.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
 //                implementation("app.cash.sqldelight:native-driver:2.1.0")
 
                 when {
-                    hostOs == "Mac OS X" && isArm64 -> implementation("co.touchlab:sqliter-driver-macosarm64:1.3.3")
-                    hostOs == "Mac OS X" && !isArm64 -> implementation("co.touchlab:sqliter-driver-macosx64:1.3.3")
-                    hostOs == "Linux" && isArm64 -> implementation("co.touchlab:sqliter-driver-linuxarm64:1.3.3")
-                    hostOs == "Linux" && !isArm64 -> implementation("co.touchlab:sqliter-driver-linuxx64:1.3.3")
-                    isMingwX64 -> implementation("co.touchlab:sqliter-driver-mingwx64:1.3.3")
+                    hostOs == "Mac OS X" && isArm64 -> {
+                        implementation("co.touchlab:sqliter-driver-macosarm64:1.3.3")
+                    }
+                    hostOs == "Mac OS X" && !isArm64 -> {
+                        implementation("co.touchlab:sqliter-driver-macosx64:1.3.3")
+                    }
+                    hostOs == "Linux" && isArm64 -> {
+                        implementation("co.touchlab:sqliter-driver-linuxarm64:1.3.3")
+                    }
+                    hostOs == "Linux" && !isArm64 -> {
+                        implementation("co.touchlab:sqliter-driver-linuxx64:1.3.3")
+                    }
+                    isMingwX64 -> {
+                        implementation("co.touchlab:sqliter-driver-mingwx64:1.3.3")
+                    }
                 }
             }
+        }
+        val nativeTest by getting {
+            dependsOn(commonTest)
         }
         /*val jvmTest by getting {
             dependencies {

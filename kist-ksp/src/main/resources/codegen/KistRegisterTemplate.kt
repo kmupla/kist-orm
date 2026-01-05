@@ -1,6 +1,7 @@
-package io.rss.knative.tools.kist.processed
+package io.knative.kist.processed
 
-import io.rss.knative.tools.kist.*
+import io.knative.kist.*
+import io.knative.kist.config.*
 
 object KistRegister {
 

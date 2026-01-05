@@ -4,7 +4,7 @@ plugins {
     `maven-publish`
 }
 
-group = "io.rss.knative.tools"
+group = "io.knative.kistorm"
 version = "1.0-SNAPSHOT"
 
 subprojects {

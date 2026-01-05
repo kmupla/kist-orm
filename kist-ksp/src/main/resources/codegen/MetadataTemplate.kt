@@ -1,16 +1,29 @@
-package io.rss.knative.tools.kist.entities
+package io.knative.kist.entities
 
+import co.touchlab.kermit.Logger
 import co.touchlab.sqliter.Cursor
 import co.touchlab.sqliter.FieldType
 import co.touchlab.sqliter.Statement
 import co.touchlab.sqliter.bindString
+import co.touchlab.sqliter.bindLong
+import co.touchlab.sqliter.bindDouble
+import co.touchlab.sqliter.bindBlob
 
-import io.rss.knative.tools.kist.EntityMetadata
-import io.rss.knative.tools.kist.FieldMetadata
-import io.rss.knative.tools.kist.ResultEvaluator
+import io.knative.kist.EntityMetadata
+import io.knative.kist.FieldMetadata
+import io.knative.kist.validation.ResultEvaluator
+import io.knative.kist.DbOperations
+import kotlin.Int
+
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.toInstant
 
 import ${entity.qualifiedName}
 
+@OptIn(ExperimentalTime::class)
 object ${entity.simpleName}OrmMetadata: EntityMetadata<${entity.simpleName}> {
     override val tableName: String = "${entity.tableName}"
     override val keyField = "${entity.keyField}"
@@ -22,21 +35,13 @@ object ${entity.simpleName}OrmMetadata: EntityMetadata<${entity.simpleName}> {
     override fun create(cursor: Cursor): ${entity.simpleName} {
         val queryFields = cursor.columnNames
         ResultEvaluator.assertRequiredColumnsPresent(queryFields, fieldMetadata)
+        val columnsIdxToNameMap = cursor.columnNames.map { it.value to it.key }.toMap() // invert key and index
 
         val columnValues = queryFields.map { field ->
             val (_, idx) = field
-            val cType = cursor.getType(idx) // TODO: assert column type matches field type
-            val effectiveValue = when (cType) {
-                FieldType.TYPE_INTEGER -> cursor.getLong(idx)
-                FieldType.TYPE_FLOAT -> cursor.getDouble(idx)
-                FieldType.TYPE_TEXT -> cursor.getString(idx)
-                FieldType.TYPE_NULL -> {
-                    // ??
-                }
-                else -> cursor.getBytes(idx)
-            }
+            val effectiveValue = DbOperations.readValueByColumnType(cursor, idx, columnsIdxToNameMap)
 
-            // maybe check double/long in range for float/int
+            // TODO: maybe check double/long in range for float/int
 
             field.key to effectiveValue
         }.toMap()
@@ -48,5 +53,9 @@ object ${entity.simpleName}OrmMetadata: EntityMetadata<${entity.simpleName}> {
 
     override fun bindFields(source: ${entity.simpleName}, statement: Statement, fieldIndexMap: Map<String, Int>) {
         ${bindingsDeclarations}
+    }
+
+    override fun getId(source: ${entity.simpleName}): Any? {
+        return source.${entity.keyField}
     }
 }

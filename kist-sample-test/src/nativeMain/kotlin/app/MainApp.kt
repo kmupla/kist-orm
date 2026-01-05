@@ -1,0 +1,63 @@
+package app
+
+import app.service.PersonService
+import io.knative.kist.config.InMemoryConfig
+import io.knative.kist.config.PersistenceContext
+import io.knative.kist.processed.KistRegister.processAnnotations
+
+fun main() {
+    PersistenceContext.createConnection(
+        InMemoryConfig(
+            dbName = "test.db",
+
+            createStatements = listOf(
+                """
+               CREATE TABLE person_table( 
+                   id INTEGER PRIMARY KEY, 
+                   name TEXT,
+                   birthday_timestamp INTEGER,
+                   street TEXT,
+                   is_active INTEGER,
+                   st_number INTEGER,
+                   complement TEXT                   
+               ) 
+            """,
+            )
+        )
+    )
+
+
+    PersistenceContext.processAnnotations()
+
+    println("executing INSERT")
+//    PersistenceContext.connection
+//        .withStatement("INSERT INTO person_table (id,name,birthday_timestamp,street,st_number) VALUES (?,?,?,?,?)") {
+//
+//        try {
+//            bindLong(1, 123L)
+//            bindString(2, "Ricardo")
+//            bindLong(3, 10000)
+//            bindString(4, "Av. Brasil")
+//            bindLong(5, 100)
+////            bindString(6, null)
+//            execute()
+//        } catch (e: SQLiteExceptionErrorCode) {
+//            println("SQLiteExceptionErrorCode: ${e.message}")
+//            e.printStackTrace()
+//            throw e
+//        } catch (e: Exception) {
+//            println("Exception cought: ${e.message}")
+//            e.printStackTrace()
+//            throw e
+//        } finally {
+////            finalizeStatement()
+//        }
+//    }
+
+
+    try {
+        PersonService.maintainPerson()
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
