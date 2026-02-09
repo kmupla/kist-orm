@@ -7,17 +7,13 @@ plugins {
 kotlin {
     jvm()
 
-    val hostOs = System.getProperty("os.name")
-    val isArm64 = System.getProperty("os.arch") == "aarch64"
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" && isArm64 -> macosArm64("native")
-        hostOs == "Mac OS X" && !isArm64 -> macosX64("native")
-        hostOs == "Linux" && isArm64 -> linuxArm64("native")
-        hostOs == "Linux" && !isArm64 -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
+    applyDefaultHierarchyTemplate()
+
+    macosX64()
+    macosArm64()
+    linuxX64()
+    linuxArm64()
+    mingwX64()
 
     sourceSets {
         val commonMain by getting {
@@ -32,33 +28,11 @@ kotlin {
             }
         }
         val nativeMain by getting {
-            dependsOn(commonMain)
-
             dependencies {
                 implementation("co.touchlab:sqliter-driver:1.3.3")
-
-                when {
-                    hostOs == "Mac OS X" && isArm64 -> {
-                        implementation("co.touchlab:sqliter-driver-macosarm64:1.3.3")
-                    }
-                    hostOs == "Mac OS X" && !isArm64 -> {
-                        implementation("co.touchlab:sqliter-driver-macosx64:1.3.3")
-                    }
-                    hostOs == "Linux" && isArm64 -> {
-                        implementation("co.touchlab:sqliter-driver-linuxarm64:1.3.3")
-                    }
-                    hostOs == "Linux" && !isArm64 -> {
-                        implementation("co.touchlab:sqliter-driver-linuxx64:1.3.3")
-                    }
-                    isMingwX64 -> {
-                        implementation("co.touchlab:sqliter-driver-mingwx64:1.3.3")
-                    }
-                }
             }
         }
-        val nativeTest by getting {
-            dependsOn(commonTest)
-        }
+        val nativeTest by getting
 
         val jvmMain by getting {
             dependencies {
