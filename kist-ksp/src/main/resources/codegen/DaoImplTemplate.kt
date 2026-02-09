@@ -1,10 +1,10 @@
-package io.knative.kist.daos
+package io.github.kmupla.kist.daos
 
 import co.touchlab.sqliter.DatabaseConnection
 
-import io.knative.kist.EntityMetadata
-import io.knative.kist.DbOperations
-import io.knative.kist.MetadataRegistry
+import io.github.kmupla.kist.EntityMetadata
+import io.github.kmupla.kist.DbOperations
+import io.github.kmupla.kist.MetadataRegistry
 
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant

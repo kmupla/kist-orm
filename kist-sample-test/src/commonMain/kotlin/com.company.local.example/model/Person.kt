@@ -1,42 +1,42 @@
 package com.company.local.example.model
 
-import io.knative.kist.Column
-import io.knative.kist.Entity
-import io.knative.kist.PrimaryKeyColumn
+import io.github.kmupla.kist.Column
+import io.github.kmupla.kist.Entity
+import io.github.kmupla.kist.PrimaryKeyColumn
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
-@Entity(tableName = "person_table")
+@io.github.kmupla.kist.Entity(tableName = "person_table")
 data class Person (
-    @PrimaryKeyColumn("id")
+    @io.github.kmupla.kist.PrimaryKeyColumn("id")
     var id: Int = 0,
 
-    @Column(name = "name")
+    @io.github.kmupla.kist.Column(name = "name")
     var name: String,
 
-    @Column(name = "birthday_timestamp")
+    @io.github.kmupla.kist.Column(name = "birthday_timestamp")
     var birthday: Long,
 
-    @Column(name = "street")
+    @io.github.kmupla.kist.Column(name = "street")
     var street: String = "",
 
-    @Column(name = "is_active")
+    @io.github.kmupla.kist.Column(name = "is_active")
     var active: Boolean = true,
 
-    @Column(name = "st_number")
+    @io.github.kmupla.kist.Column(name = "st_number")
     var number: Int = 0,
 
-    @Column(name = "utype")
+    @io.github.kmupla.kist.Column(name = "utype")
     var userType: UserType,
 
-    @Column(name = "dt_creation")
+    @io.github.kmupla.kist.Column(name = "dt_creation")
     var creationDate: LocalDateTime?,
 
-    @Column(name = "phone_number")
+    @io.github.kmupla.kist.Column(name = "phone_number")
     var phoneNumber: Int? = null,
 
-    @Column(name = "complement")
+    @io.github.kmupla.kist.Column(name = "complement")
     var complement: String? = null,
 ) {
 }

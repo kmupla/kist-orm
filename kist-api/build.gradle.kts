@@ -4,9 +4,6 @@
     id("dev.mokkery") version "3.0.0"
 }
 
-group = "io.knative.kistorm"
-version = "1.0-SNAPSHOT"
-
 kotlin {
     jvm()
 
@@ -25,7 +22,6 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-//                implementation(libs.kotlinxSerializationJson)
                 implementation("co.touchlab:kermit:2.0.8")
             }
         }
@@ -40,7 +36,6 @@ kotlin {
             dependencies {
                 implementation("co.touchlab:sqliter-driver:1.3.3")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
-//                implementation("app.cash.sqldelight:native-driver:2.1.0")
 
                 when {
                     hostOs == "Mac OS X" && isArm64 -> {

@@ -3,7 +3,7 @@ package app.service
 import com.company.local.example.PersonDao
 import com.company.local.example.model.Person
 import com.company.local.example.model.UserType
-import io.knative.kist.injectDao
+import io.github.kmupla.kist.injectDao
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
@@ -12,7 +12,7 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalTime::class)
 object PersonService {
 
-    private val personDao by injectDao<PersonDao> {}
+    private val personDao by _root_ide_package_.io.github.kmupla.kist.injectDao<PersonDao> {}
 
     fun maintainPerson() {
         println("Creating person data")

@@ -1,7 +1,7 @@
-package io.knative.kist.processed
+package io.github.kmupla.kist.processed
 
-import io.knative.kist.*
-import io.knative.kist.config.*
+import io.github.kmupla.kist.*
+import io.github.kmupla.kist.config.*
 
 object KistRegister {
 

@@ -1,13 +1,13 @@
 package app
 
 import app.service.PersonService
-import io.knative.kist.config.InMemoryConfig
-import io.knative.kist.config.PersistenceContext
-import io.knative.kist.processed.KistRegister.processAnnotations
+import io.github.kmupla.kist.config.InMemoryConfig
+import io.github.kmupla.kist.config.PersistenceContext
+import io.github.kmupla.kist.processed.KistRegister.processAnnotations
 
 fun main() {
-    PersistenceContext.createConnection(
-        InMemoryConfig(
+    _root_ide_package_.io.github.kmupla.kist.config.PersistenceContext.createConnection(
+        _root_ide_package_.io.github.kmupla.kist.config.InMemoryConfig(
             dbName = "test.db",
 
             createStatements = listOf(
@@ -27,7 +27,7 @@ fun main() {
     )
 
 
-    PersistenceContext.processAnnotations()
+    _root_ide_package_.io.github.kmupla.kist.config.PersistenceContext.processAnnotations()
 
     println("executing INSERT")
 //    PersistenceContext.connection

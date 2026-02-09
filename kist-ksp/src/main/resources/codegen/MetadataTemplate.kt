@@ -1,4 +1,4 @@
-package io.knative.kist.entities
+package io.github.kmupla.kist.entities
 
 import co.touchlab.kermit.Logger
 import co.touchlab.sqliter.Cursor
@@ -9,10 +9,10 @@ import co.touchlab.sqliter.bindLong
 import co.touchlab.sqliter.bindDouble
 import co.touchlab.sqliter.bindBlob
 
-import io.knative.kist.EntityMetadata
-import io.knative.kist.FieldMetadata
-import io.knative.kist.validation.ResultEvaluator
-import io.knative.kist.DbOperations
+import io.github.kmupla.kist.EntityMetadata
+import io.github.kmupla.kist.FieldMetadata
+import io.github.kmupla.kist.validation.ResultEvaluator
+import io.github.kmupla.kist.DbOperations
 import kotlin.Int
 
 import kotlin.time.ExperimentalTime

@@ -3,9 +3,6 @@ plugins {
     kotlin("jvm")
 }
 
-group = "io.knative.kistorm"
-version = "1.0-SNAPSHOT"
-
 publishing {
     publications {
         create<MavenPublication>("maven") {
