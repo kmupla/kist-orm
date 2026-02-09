@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.kmupla.kistorm"
-version = "1.0-SNAPSHOT"
+version = "0.8.0"
 
 subprojects {
     apply(plugin = "maven-publish")
