@@ -1,4 +1,4 @@
- plugins {
+plugins {
     kotlin("multiplatform")
     alias(libs.plugins.ksp)
     id("dev.mokkery") version "3.0.0"
@@ -23,6 +23,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("co.touchlab:kermit:2.0.8")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
             }
         }
         val commonTest by getting {
@@ -35,7 +36,6 @@ kotlin {
 
             dependencies {
                 implementation("co.touchlab:sqliter-driver:1.3.3")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
 
                 when {
                     hostOs == "Mac OS X" && isArm64 -> {
@@ -59,10 +59,17 @@ kotlin {
         val nativeTest by getting {
             dependsOn(commonTest)
         }
-        /*val jvmTest by getting {
+
+        val jvmMain by getting {
+            dependencies {
+                implementation("org.xerial:sqlite-jdbc:3.51.1.0")
+            }
+        }
+
+        val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
             }
-        }*/
+        }
     }
 }

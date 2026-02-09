@@ -2,11 +2,18 @@ package io.github.kmupla.kist.ksp
 
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
-import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.symbol.ClassKind
+import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSName
+import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSTypeReference
+import com.google.devtools.ksp.symbol.KSValueArgument
+import com.google.devtools.ksp.symbol.KSValueParameter
+import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.validate
 import io.github.kmupla.kist.KistDao
 import io.github.kmupla.kist.Query
-import kotlin.io.resolve
 
 class DaoClassVisitor(
     private val environment: SymbolProcessorEnvironment,
@@ -30,7 +37,7 @@ class DaoClassVisitor(
             return
         }
 
-        val kistDaoDecl = classDeclaration.superTypes.find { it.resolve().declaration.qualifiedName?.asString() == _root_ide_package_.io.github.kmupla.kist.KistDao::class.qualifiedName }
+        val kistDaoDecl = classDeclaration.superTypes.find { it.resolve().declaration.qualifiedName?.asString() == KistDao::class.qualifiedName }
             ?: return fail("Class ${classDeclaration.qualifiedName} must implement KistDao")
         val (targetEntity, entityKeyType) = kistDaoDecl.resolve().arguments.map { it.type?.resolve() }
         requireNotNull(targetEntity)
@@ -51,7 +58,7 @@ class DaoClassVisitor(
 
     private fun processCustomTypes(classDeclaration: KSClassDeclaration): List<String> = classDeclaration.getDeclaredFunctions()
         .associateWith { target ->
-            target.annotations.find { it.annotationType.resolve().declaration.qualifiedName?.asString() == _root_ide_package_.io.github.kmupla.kist.Query::class.qualifiedName }
+            target.annotations.find { it.annotationType.resolve().declaration.qualifiedName?.asString() == Query::class.qualifiedName }
         }
         .filter { it.value != null }
         .mapNotNull { buildQueryFunction(it.key, it.value?.arguments?.firstOrNull()) }

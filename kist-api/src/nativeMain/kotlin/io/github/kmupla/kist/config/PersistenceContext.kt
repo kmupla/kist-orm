@@ -1,26 +1,26 @@
 package io.github.kmupla.kist.config
 
 import co.touchlab.sqliter.DatabaseConfiguration
-import co.touchlab.sqliter.DatabaseConnection
 import co.touchlab.sqliter.DatabaseManager
 import co.touchlab.sqliter.createDatabaseManager
+import io.github.kmupla.kist.delegate.SqliteConnection
 
 object PersistenceContext {
 
-    private var _connection: DatabaseConnection? = null
+    private var _connection: SqliteConnection? = null
 
-    val connection: DatabaseConnection
+    val connection: SqliteConnection
         get() = _connection ?: error("DatabaseConnection not initialized. Call createConnection() first.")
 
-    fun createConnection(config: io.github.kmupla.kist.config.PersistenceConfig) {
+    fun createConnection(config: PersistenceConfig) {
         with(config) {
             val dbConfig = DatabaseConfiguration(
                 name = dbName,
                 version = version,
-                inMemory = config is io.github.kmupla.kist.config.InMemoryConfig,
+                inMemory = config is InMemoryConfig,
 
                 extendedConfig = DatabaseConfiguration.Extended(
-                    basePath = (config as? io.github.kmupla.kist.config.SqlLiteFileConfig)?.path
+                    basePath = (config as? SqlLiteFileConfig)?.path
                 ),
 
                 create = { connection ->
@@ -36,7 +36,7 @@ object PersistenceContext {
             )
 
             val dbManager: DatabaseManager = createDatabaseManager(dbConfig)
-            _connection = dbManager.createMultiThreadedConnection()
+            _connection = SqliteConnection (dbManager.createMultiThreadedConnection())
         }
     }
 

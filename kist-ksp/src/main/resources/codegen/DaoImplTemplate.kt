@@ -1,6 +1,6 @@
 package io.github.kmupla.kist.daos
 
-import co.touchlab.sqliter.DatabaseConnection
+import io.github.kmupla.kist.delegate.SqliteConnection
 
 import io.github.kmupla.kist.EntityMetadata
 import io.github.kmupla.kist.DbOperations
@@ -17,7 +17,7 @@ import ${dao.qualifiedName}
 
 @Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalTime::class)
-class ${dao.simpleName}Impl(private val connection: DatabaseConnection): ${dao.simpleName} {
+class ${dao.simpleName}Impl(private val connection: SqliteConnection): ${dao.simpleName} {
 
     ${dao.standardMethods}
 

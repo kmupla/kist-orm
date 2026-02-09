@@ -77,7 +77,7 @@ class EntityClassVisitorTest {
         whenever(entityAnnotation.annotationType.resolve()).thenReturn(annotationType)
         whenever(annotationType.declaration).thenReturn(declaration)
         whenever(declaration.qualifiedName).thenReturn(qualifiedNameMock)
-        whenever(qualifiedNameMock.asString()).thenReturn(_root_ide_package_.io.github.kmupla.kist.Entity::class.qualifiedName)
+        whenever(qualifiedNameMock.asString()).thenReturn(Entity::class.qualifiedName)
         whenever(entityAnnotation.arguments).thenReturn(emptyList())
         whenever(classDeclaration.accept(any<KSVisitor<Any?, Boolean>>(), anyOrNull())).thenReturn(true)
 
@@ -151,7 +151,7 @@ class EntityClassVisitorTest {
         whenever(packageName.asString()).thenReturn(packageNameString)
         whenever(classDeclaration.accept(any<KSVisitor<Any?, Boolean>>(), anyOrNull())).thenReturn(true)
 
-        val entityAnnotation = mockAnnotation("Entity", mapOf("tableName" to tableName), _root_ide_package_.io.github.kmupla.kist.Entity::class.qualifiedName!!)
+        val entityAnnotation = mockAnnotation("Entity", mapOf("tableName" to tableName), Entity::class.qualifiedName!!)
         whenever(classDeclaration.annotations).thenReturn(sequenceOf(entityAnnotation))
 
         return classDeclaration
@@ -174,7 +174,7 @@ class EntityClassVisitorTest {
         whenever(qualifiedName.asString()).thenReturn(typeQualifiedName)
 
         val annotationName = if (isPrimary) "PrimaryKeyColumn" else "Column"
-        val annType = if (isPrimary) _root_ide_package_.io.github.kmupla.kist.PrimaryKeyColumn::class else _root_ide_package_.io.github.kmupla.kist.Column::class
+        val annType = if (isPrimary) PrimaryKeyColumn::class else Column::class
         val columnAnnotation = mockAnnotation(annotationName, mapOf("name" to columnName), annType.qualifiedName!!)
         whenever(property.annotations).thenReturn(sequenceOf(columnAnnotation))
 

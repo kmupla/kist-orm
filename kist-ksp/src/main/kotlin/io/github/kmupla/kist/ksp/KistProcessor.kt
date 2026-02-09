@@ -42,7 +42,7 @@ class KistProcessor(private val environment: SymbolProcessorEnvironment) : Symbo
     }
 
     private fun resolveEntities(resolver: Resolver): List<KSAnnotated> {
-        val symbols = resolver.getSymbolsWithAnnotation(_root_ide_package_.io.github.kmupla.kist.Entity::class.qualifiedName!!)
+        val symbols = resolver.getSymbolsWithAnnotation(Entity::class.qualifiedName!!)
         val ret = symbols.toList()
         symbols
             .filter { it is KSClassDeclaration }
@@ -52,7 +52,7 @@ class KistProcessor(private val environment: SymbolProcessorEnvironment) : Symbo
     }
 
     private fun resolveDaos(resolver: Resolver): List<KSAnnotated> {
-        val symbols = resolver.getSymbolsWithAnnotation(_root_ide_package_.io.github.kmupla.kist.Dao::class.qualifiedName!!)
+        val symbols = resolver.getSymbolsWithAnnotation(Dao::class.qualifiedName!!)
         val ret = symbols.toList()
         symbols
             .filter { it is KSClassDeclaration }

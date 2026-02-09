@@ -33,7 +33,7 @@ class EntityClassVisitor(
         }
 
         val tableName = classDeclaration.annotations.find {
-            it.annotationType.resolve().declaration.qualifiedName?.asString() == _root_ide_package_.io.github.kmupla.kist.Entity::class.qualifiedName
+            it.annotationType.resolve().declaration.qualifiedName?.asString() == Entity::class.qualifiedName
         }
             ?.arguments
             ?.find { it.name?.asString() == "tableName" }
@@ -41,7 +41,7 @@ class EntityClassVisitor(
             ?: throw IllegalArgumentException("Table name is required in an Entity")
 
         val primaryKeyColumnFields = classDeclaration.getAllProperties()
-            .filter { field -> field.annotations.any { it.annotationType.resolve().declaration.qualifiedName?.asString() == _root_ide_package_.io.github.kmupla.kist.PrimaryKeyColumn::class.qualifiedName } }
+            .filter { field -> field.annotations.any { it.annotationType.resolve().declaration.qualifiedName?.asString() == PrimaryKeyColumn::class.qualifiedName } }
             .toList()
         if (primaryKeyColumnFields.size != 1) {
             throw IllegalArgumentException("Entity must have exactly one PrimaryKeyColumn")
@@ -55,7 +55,7 @@ class EntityClassVisitor(
             .map { field ->
                 val columnSpec = field.annotations.find {
                     val annQualifiedName = it.annotationType.resolve().declaration.qualifiedName?.asString()
-                    annQualifiedName == _root_ide_package_.io.github.kmupla.kist.Column::class.qualifiedName || annQualifiedName == _root_ide_package_.io.github.kmupla.kist.PrimaryKeyColumn::class.qualifiedName
+                    annQualifiedName == Column::class.qualifiedName || annQualifiedName == PrimaryKeyColumn::class.qualifiedName
                 }
                 field to columnSpec
             }
@@ -68,7 +68,7 @@ class EntityClassVisitor(
                     ?.value as? String
                     ?: field.simpleName.asString()
 
-                val isPrimary = annotation?.annotationType?.resolve()?.declaration?.simpleName?.asString() == _root_ide_package_.io.github.kmupla.kist.PrimaryKeyColumn::class.simpleName
+                val isPrimary = annotation?.annotationType?.resolve()?.declaration?.simpleName?.asString() == PrimaryKeyColumn::class.simpleName
                 val fieldType = field.type.resolve()
 
                 val typeName = fieldType.declaration.qualifiedName ?: fieldType.declaration.simpleName
@@ -124,33 +124,32 @@ class EntityClassVisitor(
         val bindings = fields.map { fd ->
             val optMark = "?".takeIf { fd.nullable } ?: ""
 
-            val bindingFnToGetValue = when (fd.type.asString()) {
-                String::class.qualifiedName -> "bindString" to fd.simpleName
-                Int::class.qualifiedName -> "bindLong" to "${fd.simpleName}$optMark.toLong()"
-                Long::class.qualifiedName -> "bindLong" to fd.simpleName
-                Float::class.qualifiedName -> "bindDouble" to "${fd.simpleName}$optMark.toDouble()"
-                Double::class.qualifiedName -> "bindDouble" to fd.simpleName
-                Boolean::class.qualifiedName -> "bindLong" to "${fd.simpleName}$optMark.let { if (it) 1L else 0L }"
-                ByteArray::class.qualifiedName -> "bindBlob" to fd.simpleName
+            val fieldReference = when (fd.type.asString()) {
+                String::class.qualifiedName,
+                Long::class.qualifiedName,
+                Double::class.qualifiedName,
+                ByteArray::class.qualifiedName -> fd.simpleName
 
-                "kotlinx.datetime.LocalDateTime" -> "bindLong" to "${fd.simpleName}$optMark.toInstant(TimeZone.currentSystemDefault())$optMark.epochSeconds"
+                Int::class.qualifiedName -> "${fd.simpleName}$optMark.toLong()"
+                Float::class.qualifiedName -> "${fd.simpleName}$optMark.toDouble()"
+                Boolean::class.qualifiedName -> "${fd.simpleName}$optMark.let { if (it) 1L else 0L }"
+
+                "kotlinx.datetime.LocalDateTime" -> "${fd.simpleName}$optMark.toInstant(TimeZone.currentSystemDefault())$optMark.epochSeconds"
 
                 else -> {
                     if (fd.enum) {
-                        "bindString" to "${fd.simpleName}.name"
+                        "${fd.simpleName}.name"
                     } else {
-                        "bindNull" to fd.simpleName
+                        fd.simpleName
                     }
                 }
             }
 
-            val (bindingFn, fieldReference) = bindingFnToGetValue
-
             $$"""
         if ("$${fd.simpleName}" in fieldIndexMap) {
             val fieldIndex = fieldIndexMap.getValue("$${fd.simpleName}")
-            Logger.d { "binding value [${source.$${fieldReference}}] on idx $fieldIndex" }
-            statement.$$bindingFn(fieldIndex, source.$${fieldReference})
+            Logger.d { "binding value [${source.$${fd.simpleName}}] on idx $fieldIndex" }
+            statement.bindByType($${fd.type.asString()}::class, fieldIndex, source.$${fd.simpleName})
         }
             """.trimEnd()
         }

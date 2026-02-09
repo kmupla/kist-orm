@@ -1,13 +1,7 @@
 package io.github.kmupla.kist.entities
 
 import co.touchlab.kermit.Logger
-import co.touchlab.sqliter.Cursor
-import co.touchlab.sqliter.FieldType
-import co.touchlab.sqliter.Statement
-import co.touchlab.sqliter.bindString
-import co.touchlab.sqliter.bindLong
-import co.touchlab.sqliter.bindDouble
-import co.touchlab.sqliter.bindBlob
+import io.github.kmupla.kist.delegate.*
 
 import io.github.kmupla.kist.EntityMetadata
 import io.github.kmupla.kist.FieldMetadata
@@ -32,16 +26,13 @@ object ${entity.simpleName}OrmMetadata: EntityMetadata<${entity.simpleName}> {
         ${fieldMetadataList}
     )
 
-    override fun create(cursor: Cursor): ${entity.simpleName} {
-        val queryFields = cursor.columnNames
+    override fun create(cursor: SqliteCursor): ${entity.simpleName} {
+        val queryFields = cursor.getColumnNames()
         ResultEvaluator.assertRequiredColumnsPresent(queryFields, fieldMetadata)
-        val columnsIdxToNameMap = cursor.columnNames.map { it.value to it.key }.toMap() // invert key and index
 
         val columnValues = queryFields.map { field ->
             val (_, idx) = field
-            val effectiveValue = DbOperations.readValueByColumnType(cursor, idx, columnsIdxToNameMap)
-
-            // TODO: maybe check double/long in range for float/int
+            val effectiveValue = DbOperations.readValueByColumnType(cursor, idx)
 
             field.key to effectiveValue
         }.toMap()
@@ -51,7 +42,7 @@ object ${entity.simpleName}OrmMetadata: EntityMetadata<${entity.simpleName}> {
         )
     }
 
-    override fun bindFields(source: ${entity.simpleName}, statement: Statement, fieldIndexMap: Map<String, Int>) {
+    override fun bindFields(source: ${entity.simpleName}, statement: SqliteStatement, fieldIndexMap: Map<String, Int>) {
         ${bindingsDeclarations}
     }
 
