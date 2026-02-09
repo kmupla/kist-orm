@@ -1,0 +1,13 @@
+site_name: Kist ORM
+
+theme:
+  name: material
+
+nav:
+  - Welcome: index.md
+  - Get Started: get_started.md
+  - Configuration: configuration.md
+  - Database Access: database_access.md
+  - Entities: entities.md
+  - Queries: queries.md
+
