@@ -31,8 +31,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build with Gradle
-        run: gradle build -Pversion=${{ github.event.inputs.version }}
+      - name: Build and Publish to Local Repo
+        run: gradle publish -Pversion=${{ github.event.inputs.version }}
+
+      - name: Zip Artifacts
+        run: zip -r artifacts.zip build/repo
 
       - name: Create Release
         id: create_release
@@ -45,4 +48,5 @@ jobs:
           body: ${{ github.event.inputs.description }}
           draft: false
           prerelease: false
-          generate_release_notes: true # Automatically lists contributors and PRs
+          generate_release_notes: false
+          files: artifacts.zip

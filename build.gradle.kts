@@ -9,4 +9,13 @@ version = "0.8.0"
 
 subprojects {
     apply(plugin = "maven-publish")
+
+    publishing {
+        repositories {
+            maven {
+                name = "BuildRepo"
+                url = uri("${rootProject.buildDir}/repo")
+            }
+        }
+    }
 }
