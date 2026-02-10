@@ -33,9 +33,14 @@ jobs:
 
       - name: Build and Publish to Local Repo
         run: gradle publish -Pversion=${{ github.event.inputs.version }}
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+          GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
 
       - name: Zip Artifacts
-        run: zip -r artifacts.zip build/repo
+        run: |
+          cd build/repo
+          zip -r ../../artifacts.zip .
 
       - name: Create Release
         id: create_release
