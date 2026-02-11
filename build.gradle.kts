@@ -8,13 +8,18 @@ group = "io.github.kmupla.kistorm"
 version = "0.8.0"
 
 subprojects {
-    apply(plugin = "maven-publish")
+    group = rootProject.group
+    version = rootProject.version
 
-    publishing {
-        repositories {
-            maven {
-                name = "BuildRepo"
-                url = uri("${rootProject.buildDir}/repo")
+    if (name != "kist-sample-test") {
+        apply(plugin = "maven-publish")
+
+        publishing {
+            repositories {
+                maven {
+                    name = "BuildRepo"
+                    url = uri("${rootProject.buildDir}/repo")
+                }
             }
         }
     }

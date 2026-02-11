@@ -67,6 +67,13 @@ publishing {
         // Add the empty javadoc jar to all targets so Sonatype doesn't reject it
         artifact(javadocJar)
 
+        groupId = project.group.toString()
+        artifactId = when (name) {
+            "kotlinMultiplatform" -> project.name
+            else -> "${project.name}-$name"
+        }
+        version = project.version.toString()
+
         pom {
             name.set("Kist API")
             description.set("ORM for Kotlin Multiplatform")
