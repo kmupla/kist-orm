@@ -1,0 +1,764 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Kist ORM Framework Usage - Kist ORM</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#kist-orm-framework-usage" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Kist ORM" class="md-header__button md-logo" aria-label="Kist ORM" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Kist ORM
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Kist ORM Framework Usage
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Kist ORM" class="md-nav__button md-logo" aria-label="Kist ORM" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Kist ORM
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Welcome
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Access
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../entities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../queries/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Queries
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-entity-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Entity Definition
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Entity Definition">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-petkt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example (Pet.kt)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-dao-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. DAO Definition
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. DAO Definition">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Queries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-petdaokt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example (PetDao.kt)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-query-examples-orderdaokt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Query Examples (OrderDao.kt)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-configuration-initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configuration &amp; Initialization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Configuration &amp; Initialization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-petshopconfigurerkt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example (PetShopConfigurer.kt)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Transactions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="kist-orm-framework-usage">Kist ORM Framework Usage</h1>
+<p>This project uses <strong>Kist</strong>, a custom ORM framework for Kotlin Native/Multiplatform, which shares similarities with Spring Data JPA and Android Room. Below is a guide on how to use it based on a PetShop example.</p>
+<h2 id="1-entity-definition">1. Entity Definition</h2>
+<p>Entities are Kotlin data classes annotated with <code>@Entity</code>. They map to database tables.</p>
+<h3 id="annotations">Annotations</h3>
+<ul>
+<li><code>@Entity(tableName = "...")</code>: Marks the class as an entity and specifies the table name.</li>
+<li><code>@PrimaryKeyColumn("...")</code>: Marks the primary key field and its column name.</li>
+<li><code>@Column("...")</code>: Maps a class property to a database column.</li>
+</ul>
+<h3 id="example-petkt">Example (<code>Pet.kt</code>)</h3>
+<pre><code class="language-kotlin">package com.example.petshop.model
+
+import io.rss.knative.tools.kist.Column
+import io.rss.knative.tools.kist.Entity
+import io.rss.knative.tools.kist.PrimaryKeyColumn
+import kotlinx.serialization.Serializable
+
+@Serializable
+@Entity(tableName = &quot;pets&quot;)
+data class Pet (
+
+    @PrimaryKeyColumn(&quot;id&quot;)
+    var id: String,
+
+    @Column(&quot;name&quot;)
+    var name: String,
+
+    @Column(&quot;type&quot;)
+    var type: PetType,
+
+    @Column(&quot;owner_id&quot;)
+    var ownerId: String?,
+
+    @Column(&quot;birth_date&quot;)
+    var birthDate: Long,
+
+    @Column(&quot;status&quot;)
+    var status: PetStatus,
+
+)
+</code></pre>
+<h2 id="2-dao-definition">2. DAO Definition</h2>
+<p>Data Access Objects (DAOs) are interfaces that define database operations. They must be annotated with <code>@Dao</code> and extend <code>KistDao</code>.</p>
+<h3 id="basic-usage">Basic Usage</h3>
+<p>Extend <code>KistDao&lt;Entity, ID_Type&gt;</code> to inherit basic CRUD operations.</p>
+<pre><code class="language-kotlin">@Dao
+interface OwnerDao: KistDao&lt;Owner, String&gt; {
+}
+</code></pre>
+<h3 id="custom-queries">Custom Queries</h3>
+<p>Use the <code>@Query</code> annotation to define custom SQL queries. Method parameters can be bound to query parameters using the <code>:</code> prefix.</p>
+<h3 id="example-petdaokt">Example (<code>PetDao.kt</code>)</h3>
+<pre><code class="language-kotlin">@Dao
+interface PetDao: KistDao&lt;Pet, String&gt; {
+
+    @Query(&quot;&quot;&quot;
+        SELECT * 
+        FROM pets p 
+        WHERE p.birth_date &gt;= :minBirthDate AND p.status = 'AVAILABLE'
+        ORDER BY p.birth_date
+        LIMIT 1
+    &quot;&quot;&quot;)
+    fun findYoungestAvailablePet(minBirthDate: Long): Pet?
+
+    @Query(&quot;&quot;&quot;
+        SELECT MIN(p.birth_date) 
+        FROM pets p 
+        WHERE p.status = 'AVAILABLE'
+    &quot;&quot;&quot;)
+    fun findOldestAvailablePetDate(): Long?
+
+    // Dynamic query parameters
+    @Query(&quot;&quot;&quot;
+        SELECT * 
+        FROM pets p 
+        WHERE p.status &lt;&gt; 'SOLD'  
+          AND (:petType IS NULL OR p.type = :petType)
+    &quot;&quot;&quot;)
+    fun findAvailablePets(petType: PetType? = null): List&lt;Pet&gt;
+}
+</code></pre>
+<h3 id="advanced-query-examples-orderdaokt">Advanced Query Examples (<code>OrderDao.kt</code>)</h3>
+<p>The framework supports aggregation, <code>DELETE</code> operations, and <code>IN</code> clauses with list parameters.</p>
+<pre><code class="language-kotlin">@Dao
+interface OrderDao: KistDao&lt;Order, String&gt; {
+
+    @Query(&quot;SELECT COUNT(*) as count FROM orders&quot;)
+    fun countAllOrders(): Long?
+}
+
+@Dao
+interface OrderItemDao: KistDao&lt;OrderItem, String&gt; {
+
+    @Query(&quot;DELETE FROM order_items WHERE order_id = :orderId&quot;)
+    fun deleteByOrder(orderId: String)
+
+    // List parameter for IN clause
+    @Query(&quot;SELECT * FROM order_items WHERE product_id IN (:productIds)&quot;)
+    fun findByProductIds(productIds: List&lt;String&gt;): List&lt;OrderItem&gt;
+}
+</code></pre>
+<h2 id="3-configuration-initialization">3. Configuration &amp; Initialization</h2>
+<p>The framework needs to be initialized with a database configuration and schema definitions.</p>
+<h3 id="setup-steps">Setup Steps</h3>
+<ol>
+<li><strong>Define Schema</strong>: Prepare the SQL statements for creating tables.</li>
+<li><strong>Create Connection</strong>: Use <code>PersistenceContext.createConnection</code> with <code>SqlLiteFileConfig</code>.</li>
+<li><strong>Process Annotations</strong>: Call <code>PersistenceContext.processAnnotations()</code> to finalize setup.</li>
+</ol>
+<h3 id="example-petshopconfigurerkt">Example (<code>PetShopConfigurer.kt</code>)</h3>
+<pre><code class="language-kotlin">object PetShopConfigurer {
+
+    fun configureDb(filePath: String) {
+        // Prepare SQL schema statements
+        val sqlList = cleanUpSqlSource(R.DB_SCHEMA_SQL)
+            .plus(cleanUpSqlSource(Assets.INITIAL_DATA_SQL.decodeToString()))
+
+        // Ensure directory exists
+        Path(filePath).parent?.let {
+            Files.createDirectories(it)
+        }
+
+        // Initialize PersistenceContext
+        PersistenceContext.createConnection(
+            SqlLiteFileConfig(&quot;petshop.db.sqlite&quot;,
+                path = filePath,
+                createStatements = sqlList))
+
+        // Process annotations (Essential step)
+        PersistenceContext.processAnnotations()
+    }
+
+    // ... helper methods ...
+}
+</code></pre>
+<h2 id="4-transactions">4. Transactions</h2>
+<p>There is a <code>Transactional</code> object in <code>com.example.petshop.dao.Transactional</code>, but it appears to be a placeholder implementation currently.</p>
+<pre><code class="language-kotlin">package com.example.petshop.dao
+
+import kotlin.native.concurrent.ThreadLocal
+
+@ThreadLocal
+object Transactional {
+    fun &lt;T&gt; runInTransaction(block: () -&gt; T): T {
+        // Placeholder: executes block directly
+        return block()
+    }
+}
+</code></pre>
+<h2 id="5-dependencies">5. Dependencies</h2>
+<p>The framework relies on:
+- <code>io.rss.knative.tools.kist.*</code> packages.
+- <code>kotlinx.serialization</code> (often used with Entities).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
