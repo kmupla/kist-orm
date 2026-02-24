@@ -63,24 +63,26 @@ actual class SqliteCursor(private val resultSet: ResultSet) {
 
     actual fun next(): Boolean = resultSet.next()
 
+    // in sql -driver on JVM it's 1-indexed
+
     actual fun getLong(index: Int): Long {
-        return resultSet.getLong(index)
+        return resultSet.getLong(index + 1)
     }
 
     actual fun getDouble(index: Int): Double {
-        return resultSet.getDouble(index)
+        return resultSet.getDouble(index + 1)
     }
 
     actual fun getString(index: Int): String {
-        return resultSet.getString(index)
+        return resultSet.getString(index + 1)
     }
 
     actual fun getBytes(index: Int): ByteArray {
-        return resultSet.getBytes(index)
+        return resultSet.getBytes(index + 1)
     }
 
     actual fun isNull(index: Int): Boolean {
-        resultSet.getObject(index)
+        resultSet.getObject(index + 1)
         return resultSet.wasNull()
     }
 
@@ -89,11 +91,11 @@ actual class SqliteCursor(private val resultSet: ResultSet) {
     }
 
     actual fun getColumnName(index: Int): String {
-        return resultSet.metaData.getColumnName(index)
+        return resultSet.metaData.getColumnName(index + 1)
     }
 
     actual fun getType(index: Int): ColumnType {
-        return when (metadata.getColumnType(index)) {
+        return when (metadata.getColumnType(index + 1)) {
             Types.INTEGER,
             Types.SMALLINT,
             Types.BIGINT -> ColumnType.TYPE_LONG
