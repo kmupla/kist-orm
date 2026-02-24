@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.kmupla.kistorm"
-version = "0.8.1-SNAPSHOT"
+version = "0.8.1"
 
 subprojects {
     group = rootProject.group
