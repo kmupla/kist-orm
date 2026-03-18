@@ -1,6 +1,6 @@
 package io.github.kmupla.kist
 
-@io.github.kmupla.kist.Dao
+@Dao
 interface KistDao<T, P> {
 
     fun insert(data: T): Long?

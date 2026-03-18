@@ -83,6 +83,117 @@ class DaoClassVisitorTest {
     }
 
     @Test
+    fun `visitClassDeclaration with positional query emits vararg call site`() {
+        val entityType = mockType("com.example.TestEntity", "TestEntity")
+        val keyType = mockType("kotlin.String", "String")
+        val daoDeclaration = mockDaoClassDeclaration("TestDao", "com.example.TestDao", entityType, keyType)
+
+        val function = mockFunctionDeclarationWithParams(
+            name = "findByStreet",
+            query = "SELECT * FROM test_entity WHERE street LIKE ?",
+            params = listOf("prefix" to "kotlin.String"),
+        )
+        val declarations: Sequence<KSDeclaration> = sequenceOf(function as KSDeclaration)
+        whenever(daoDeclaration.declarations).thenReturn(declarations)
+
+        underTest.visitClassDeclaration(daoDeclaration, Unit)
+
+        assertEquals(1, resultMap.size)
+        val generatedCode = resultMap.values.first()
+        assertTrue(generatedCode.contains("fun findByStreet"), "Should contain function name")
+        // positional mode: params passed as plain identifiers, not as mapOf(...)
+        assertTrue(generatedCode.contains("prefix"), "Should reference the param name directly")
+        assertFalse(generatedCode.contains("mapOf("), "Should NOT use mapOf in positional mode")
+    }
+
+    @Test
+    fun `visitClassDeclaration with named query emits mapOf call site`() {
+        val entityType = mockType("com.example.TestEntity", "TestEntity")
+        val keyType = mockType("kotlin.String", "String")
+        val daoDeclaration = mockDaoClassDeclaration("TestDao", "com.example.TestDao", entityType, keyType)
+
+        val function = mockFunctionDeclarationWithParams(
+            name = "findByName",
+            query = "SELECT * FROM test_entity WHERE name = :name",
+            params = listOf("name" to "kotlin.String"),
+        )
+        val declarations: Sequence<KSDeclaration> = sequenceOf(function as KSDeclaration)
+        whenever(daoDeclaration.declarations).thenReturn(declarations)
+
+        underTest.visitClassDeclaration(daoDeclaration, Unit)
+
+        assertEquals(1, resultMap.size)
+        val generatedCode = resultMap.values.first()
+        assertTrue(generatedCode.contains("fun findByName"), "Should contain function name")
+        assertTrue(generatedCode.contains("""mapOf("name" to name)"""), "Should emit mapOf with named param")
+    }
+
+    @Test
+    fun `visitClassDeclaration with named query and multiple params emits full mapOf`() {
+        val entityType = mockType("com.example.TestEntity", "TestEntity")
+        val keyType = mockType("kotlin.String", "String")
+        val daoDeclaration = mockDaoClassDeclaration("TestDao", "com.example.TestDao", entityType, keyType)
+
+        val function = mockFunctionDeclarationWithParams(
+            name = "findByNameAndStreet",
+            query = "SELECT * FROM test_entity WHERE name = :name AND street = :street",
+            params = listOf("name" to "kotlin.String", "street" to "kotlin.String"),
+        )
+        val declarations: Sequence<KSDeclaration> = sequenceOf(function as KSDeclaration)
+        whenever(daoDeclaration.declarations).thenReturn(declarations)
+
+        underTest.visitClassDeclaration(daoDeclaration, Unit)
+
+        assertEquals(1, resultMap.size)
+        val generatedCode = resultMap.values.first()
+        assertTrue(generatedCode.contains("""mapOf("name" to name, "street" to street)"""), "Should emit mapOf with both params")
+    }
+
+    @Test
+    fun `visitClassDeclaration with mixed placeholder query logs error and omits method`() {
+        val entityType = mockType("com.example.TestEntity", "TestEntity")
+        val keyType = mockType("kotlin.String", "String")
+        val daoDeclaration = mockDaoClassDeclaration("TestDao", "com.example.TestDao", entityType, keyType)
+
+        val function = mockFunctionDeclarationWithParams(
+            name = "badQuery",
+            query = "SELECT * FROM t WHERE a = ? AND b = :b",
+            params = listOf("a" to "kotlin.String", "b" to "kotlin.String"),
+        )
+        val declarations: Sequence<KSDeclaration> = sequenceOf(function as KSDeclaration)
+        whenever(daoDeclaration.declarations).thenReturn(declarations)
+
+        underTest.visitClassDeclaration(daoDeclaration, Unit)
+
+        verify(logger).error(
+            "Query in 'badQuery' mixes positional '?' and named ':param' placeholders, which is not allowed."
+        )
+        val generatedCode = resultMap.values.first()
+        assertFalse(generatedCode.contains("fun badQuery"), "Mixed-placeholder method should not be generated")
+    }
+
+    @Test
+    fun `visitClassDeclaration with unknown named param logs error`() {
+        val entityType = mockType("com.example.TestEntity", "TestEntity")
+        val keyType = mockType("kotlin.String", "String")
+        val daoDeclaration = mockDaoClassDeclaration("TestDao", "com.example.TestDao", entityType, keyType)
+
+        val function = mockFunctionDeclarationWithParams(
+            name = "findByName",
+            query = "SELECT * FROM t WHERE name = :typo",
+            params = listOf("name" to "kotlin.String"),
+        )
+        val declarations: Sequence<KSDeclaration> = sequenceOf(function as KSDeclaration)
+        whenever(daoDeclaration.declarations).thenReturn(declarations)
+
+        underTest.visitClassDeclaration(daoDeclaration, Unit)
+
+        verify(logger).error(
+            "Named parameter ':typo' in query of 'findByName' does not match any method parameter. Available: [name]"
+        )
+    }
+
+    @Test
     fun `visitClassDeclaration with custom query`() {
         val entityType = mockType("com.example.TestEntity", "TestEntity")
         val keyType = mockType("kotlin.String", "String")
@@ -97,6 +208,7 @@ class DaoClassVisitorTest {
         assertEquals(1, resultMap.size)
         val generatedCode = resultMap.values.first()
         assertTrue(generatedCode.contains("fun findByName ()"))
+        // named mode: original SQL is still embedded verbatim in the generated source
         assertTrue(generatedCode.contains("""SELECT * FROM test_entity WHERE name = :name"""))
     }
 
@@ -124,6 +236,51 @@ class DaoClassVisitorTest {
         whenever(daoDeclaration.superTypes).thenReturn(sequenceOf(superTypeRef))
 
         return daoDeclaration
+    }
+
+    /**
+     * Creates a mock [KSFunctionDeclaration] with an explicit parameter list.
+     * Each entry in [params] is `paramName to qualifiedTypeName`.
+     */
+    private fun mockFunctionDeclarationWithParams(
+        name: String,
+        query: String,
+        params: List<Pair<String, String>>,
+    ): KSFunctionDeclaration {
+        val func: KSFunctionDeclaration = mock()
+        val ksName: KSName = mock()
+        whenever(ksName.getShortName()).thenReturn(name)
+        whenever(ksName.asString()).thenReturn(name)
+        whenever(func.simpleName).thenReturn(ksName)
+
+        val queryAnnotation = mockAnnotation("Query", mapOf("value" to query), Query::class.qualifiedName!!)
+        whenever(func.annotations).thenReturn(sequenceOf(queryAnnotation))
+
+        val returnTypeRef: KSTypeReference = mock()
+        val returnType = mockType("com.example.TestEntity", "TestEntity")
+        whenever(returnTypeRef.resolve()).thenReturn(returnType)
+        whenever(func.returnType).thenReturn(returnTypeRef)
+        whenever(func.modifiers).thenReturn(emptySet())
+
+        val ksParams = params.map { (paramName, qualifiedType) ->
+            val param: KSValueParameter = mock()
+            val paramKsName: KSName = mock()
+            whenever(paramKsName.getShortName()).thenReturn(paramName)
+            whenever(paramKsName.asString()).thenReturn(paramName)
+            whenever(param.name).thenReturn(paramKsName)
+
+            val paramType = mockType(qualifiedType, qualifiedType.substringAfterLast('.'))
+            whenever(paramType.arguments).thenReturn(emptyList())
+            whenever(paramType.isMarkedNullable).thenReturn(false)
+            val paramTypeRef: KSTypeReference = mock()
+            whenever(paramTypeRef.resolve()).thenReturn(paramType)
+            whenever(param.type).thenReturn(paramTypeRef)
+            param
+        }
+        whenever(func.parameters).thenReturn(ksParams)
+        whenever(func.toString()).thenReturn("fun $name(...): TestEntity")
+
+        return func
     }
 
     private fun mockFunctionDeclaration(name: String, query: String): KSFunctionDeclaration {
