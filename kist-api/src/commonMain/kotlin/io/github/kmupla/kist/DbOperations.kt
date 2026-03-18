@@ -193,6 +193,35 @@ object DbOperations {
         }
     }
 
+    fun executeModifyingQuery(
+        connection: SqliteConnection,
+        query: String,
+        vararg params: Any?,
+    ): Long {
+        Logger.d { "[SQL] $query" }
+        return connection.withStatement(query) {
+            params.forEachIndexed { idx, singleParam ->
+                if (singleParam != null) {
+                    bindByType(singleParam::class, idx + 1, singleParam)
+                } else {
+                    bindNull(idx + 1)
+                }
+            }
+            executeUpdateDelete().toLong()
+        }
+    }
+
+    fun executeModifyingQuery(
+        connection: SqliteConnection,
+        query: String,
+        namedParams: Map<String, Any?>,
+    ): Long {
+        val parsed = NamedParameterQuery.parse(query)
+        Logger.d { "[SQL] Rewritten named query: ${parsed.sql}" }
+        val orderedValues = NamedParameterQuery.orderedValues(parsed, namedParams)
+        return executeModifyingQuery(connection, parsed.sql, *orderedValues.toTypedArray())
+    }
+
     fun readValueByColumnType(cursor: SqliteCursor, idx: Int): Any? {
         if (cursor.isNull(idx)) {
             Logger.d { "Column value is null at index: $idx" }

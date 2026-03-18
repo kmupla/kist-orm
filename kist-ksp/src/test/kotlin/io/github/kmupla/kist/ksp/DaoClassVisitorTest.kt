@@ -4,6 +4,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.symbol.*
 import io.github.kmupla.kist.KistDao
+import io.github.kmupla.kist.ModifyingQuery
 import io.github.kmupla.kist.Query
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -212,6 +213,109 @@ class DaoClassVisitorTest {
         assertTrue(generatedCode.contains("""SELECT * FROM test_entity WHERE name = :name"""))
     }
 
+    @Test
+    fun `visitClassDeclaration with modifying query unit return and named params emits executeModifyingQuery without return value`() {
+        val entityType = mockType("com.example.TestEntity", "TestEntity")
+        val keyType = mockType("kotlin.String", "String")
+        val daoDeclaration = mockDaoClassDeclaration("TestDao", "com.example.TestDao", entityType, keyType)
+
+        val function = mockModifyingFunctionWithParams(
+            name = "deleteByName",
+            query = "DELETE FROM test_entity WHERE name = :name",
+            params = listOf("name" to "kotlin.String"),
+            returnQualifiedName = "kotlin.Unit",
+            returnSimpleName = "Unit",
+        )
+        val declarations: Sequence<KSDeclaration> = sequenceOf(function as KSDeclaration)
+        whenever(daoDeclaration.declarations).thenReturn(declarations)
+
+        underTest.visitClassDeclaration(daoDeclaration, Unit)
+
+        assertEquals(1, resultMap.size)
+        val generatedCode = resultMap.values.first()
+        assertTrue(generatedCode.contains("fun deleteByName"), "Should contain function name")
+        assertTrue(generatedCode.contains("executeModifyingQuery"), "Should call executeModifyingQuery")
+        assertTrue(generatedCode.contains("""mapOf("name" to name)"""), "Should use named params mapOf")
+        assertFalse(generatedCode.contains("return result"), "Unit return should not return a result value")
+        assertTrue(generatedCode.contains("return"), "Unit return should still emit a bare return")
+    }
+
+    @Test
+    fun `visitClassDeclaration with modifying query long return and positional params emits executeModifyingQuery with return result`() {
+        val entityType = mockType("com.example.TestEntity", "TestEntity")
+        val keyType = mockType("kotlin.String", "String")
+        val daoDeclaration = mockDaoClassDeclaration("TestDao", "com.example.TestDao", entityType, keyType)
+
+        val function = mockModifyingFunctionWithParams(
+            name = "archiveOlderThan",
+            query = "UPDATE test_entity SET archived = 1 WHERE age > ?",
+            params = listOf("age" to "kotlin.Long"),
+            returnQualifiedName = "kotlin.Long",
+            returnSimpleName = "Long",
+        )
+        val declarations: Sequence<KSDeclaration> = sequenceOf(function as KSDeclaration)
+        whenever(daoDeclaration.declarations).thenReturn(declarations)
+
+        underTest.visitClassDeclaration(daoDeclaration, Unit)
+
+        assertEquals(1, resultMap.size)
+        val generatedCode = resultMap.values.first()
+        assertTrue(generatedCode.contains("fun archiveOlderThan"), "Should contain function name")
+        assertTrue(generatedCode.contains("executeModifyingQuery"), "Should call executeModifyingQuery")
+        assertFalse(generatedCode.contains("mapOf("), "Positional mode should not use mapOf")
+        assertTrue(generatedCode.contains("return result"), "Long return should return result")
+    }
+
+    @Test
+    fun `visitClassDeclaration with modifying query invalid return type logs error and omits method`() {
+        val entityType = mockType("com.example.TestEntity", "TestEntity")
+        val keyType = mockType("kotlin.String", "String")
+        val daoDeclaration = mockDaoClassDeclaration("TestDao", "com.example.TestDao", entityType, keyType)
+
+        val function = mockModifyingFunctionWithParams(
+            name = "badModifyingReturn",
+            query = "DELETE FROM test_entity WHERE name = :name",
+            params = listOf("name" to "kotlin.String"),
+            returnQualifiedName = "kotlin.String",
+            returnSimpleName = "String",
+        )
+        val declarations: Sequence<KSDeclaration> = sequenceOf(function as KSDeclaration)
+        whenever(daoDeclaration.declarations).thenReturn(declarations)
+
+        underTest.visitClassDeclaration(daoDeclaration, Unit)
+
+        verify(logger).error(
+            "ModifyingQuery 'badModifyingReturn' must return Unit or Long, but found 'kotlin.String'."
+        )
+        val generatedCode = resultMap.values.first()
+        assertFalse(generatedCode.contains("fun badModifyingReturn"), "Invalid return type method should not be generated")
+    }
+
+    @Test
+    fun `visitClassDeclaration with modifying query mixed placeholders logs error and omits method`() {
+        val entityType = mockType("com.example.TestEntity", "TestEntity")
+        val keyType = mockType("kotlin.String", "String")
+        val daoDeclaration = mockDaoClassDeclaration("TestDao", "com.example.TestDao", entityType, keyType)
+
+        val function = mockModifyingFunctionWithParams(
+            name = "badMixedModifying",
+            query = "DELETE FROM test_entity WHERE a = ? AND b = :b",
+            params = listOf("a" to "kotlin.String", "b" to "kotlin.String"),
+            returnQualifiedName = "kotlin.Unit",
+            returnSimpleName = "Unit",
+        )
+        val declarations: Sequence<KSDeclaration> = sequenceOf(function as KSDeclaration)
+        whenever(daoDeclaration.declarations).thenReturn(declarations)
+
+        underTest.visitClassDeclaration(daoDeclaration, Unit)
+
+        verify(logger).error(
+            "Query in 'badMixedModifying' mixes positional '?' and named ':param' placeholders, which is not allowed."
+        )
+        val generatedCode = resultMap.values.first()
+        assertFalse(generatedCode.contains("fun badMixedModifying"), "Mixed-placeholder modifying method should not be generated")
+    }
+
     private fun mockDaoClassDeclaration(daoName: String, qualifiedDaoName: String, entityType: KSType, keyType: KSType): KSClassDeclaration {
         val daoDeclaration: KSClassDeclaration = mock()
         val ksName: KSName = mock()
@@ -301,6 +405,53 @@ class DaoClassVisitorTest {
         whenever(func.modifiers).thenReturn(emptySet())
         whenever(func.toString()).thenReturn("fun $name(): TestEntity")
 
+
+        return func
+    }
+
+    /**
+     * Creates a mock [KSFunctionDeclaration] annotated with [ModifyingQuery].
+     * [returnQualifiedName] / [returnSimpleName] control the declared return type.
+     */
+    private fun mockModifyingFunctionWithParams(
+        name: String,
+        query: String,
+        params: List<Pair<String, String>>,
+        returnQualifiedName: String,
+        returnSimpleName: String,
+    ): KSFunctionDeclaration {
+        val func: KSFunctionDeclaration = mock()
+        val ksName: KSName = mock()
+        whenever(ksName.getShortName()).thenReturn(name)
+        whenever(ksName.asString()).thenReturn(name)
+        whenever(func.simpleName).thenReturn(ksName)
+
+        val modifyingAnnotation = mockAnnotation("ModifyingQuery", mapOf("value" to query), ModifyingQuery::class.qualifiedName!!)
+        whenever(func.annotations).thenReturn(sequenceOf(modifyingAnnotation))
+
+        val returnTypeRef: KSTypeReference = mock()
+        val returnType = mockType(returnQualifiedName, returnSimpleName)
+        whenever(returnTypeRef.resolve()).thenReturn(returnType)
+        whenever(func.returnType).thenReturn(returnTypeRef)
+        whenever(func.modifiers).thenReturn(emptySet())
+
+        val ksParams = params.map { (paramName, qualifiedType) ->
+            val param: KSValueParameter = mock()
+            val paramKsName: KSName = mock()
+            whenever(paramKsName.getShortName()).thenReturn(paramName)
+            whenever(paramKsName.asString()).thenReturn(paramName)
+            whenever(param.name).thenReturn(paramKsName)
+
+            val paramType = mockType(qualifiedType, qualifiedType.substringAfterLast('.'))
+            whenever(paramType.arguments).thenReturn(emptyList())
+            whenever(paramType.isMarkedNullable).thenReturn(false)
+            val paramTypeRef: KSTypeReference = mock()
+            whenever(paramTypeRef.resolve()).thenReturn(paramType)
+            whenever(param.type).thenReturn(paramTypeRef)
+            param
+        }
+        whenever(func.parameters).thenReturn(ksParams)
+        whenever(func.toString()).thenReturn("fun $name(...): $returnSimpleName")
 
         return func
     }

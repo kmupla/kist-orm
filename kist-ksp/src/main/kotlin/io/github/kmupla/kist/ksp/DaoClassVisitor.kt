@@ -13,6 +13,7 @@ import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.validate
 import io.github.kmupla.kist.KistDao
+import io.github.kmupla.kist.ModifyingQuery
 import io.github.kmupla.kist.Query
 
 class DaoClassVisitor(
@@ -56,16 +57,25 @@ class DaoClassVisitor(
         resultMap[classDeclaration.qualifiedName ?: classDeclaration.simpleName] = resultSource
     }
 
-    private fun processCustomTypes(classDeclaration: KSClassDeclaration): List<String> = classDeclaration.getDeclaredFunctions()
-        .associateWith { target ->
-            target.annotations.find { it.annotationType.resolve().declaration.qualifiedName?.asString() == Query::class.qualifiedName }
-        }
-        .filter { it.value != null }
-        .mapNotNull { buildQueryFunction(it.key, it.value?.arguments?.firstOrNull()) }
+    private fun processCustomTypes(classDeclaration: KSClassDeclaration): List<String> =
+        classDeclaration.getDeclaredFunctions().mapNotNull { fn ->
+            val queryAnnotation = fn.annotations.find {
+                it.annotationType.resolve().declaration.qualifiedName?.asString() == Query::class.qualifiedName
+            }
+            val modifyingAnnotation = fn.annotations.find {
+                it.annotationType.resolve().declaration.qualifiedName?.asString() == ModifyingQuery::class.qualifiedName
+            }
+            when {
+                queryAnnotation != null -> buildQueryFunction(fn, queryAnnotation.arguments.firstOrNull(), isModifying = false)
+                modifyingAnnotation != null -> buildQueryFunction(fn, modifyingAnnotation.arguments.firstOrNull(), isModifying = true)
+                else -> null
+            }
+        }.toList()
 
     private fun buildQueryFunction(
         functionDeclaration: KSFunctionDeclaration,
-        queryValue: KSValueArgument?
+        queryValue: KSValueArgument?,
+        isModifying: Boolean,
     ): String? {
         if (queryValue == null) {
             return null
@@ -74,18 +84,26 @@ class DaoClassVisitor(
         val returnType = functionDeclaration.returnType?.resolve()?.declaration
             ?: throw IllegalArgumentException("A query function must have a return type declared")
 
-        if (returnType.typeParameters.isNotEmpty()) {
-            require(returnType.qualifiedName?.asString() == List::class.qualifiedName) {
-                "Query functions must return either a single element (like an Entity) or List<E>"
+        if (isModifying) {
+            val returnQName = returnType.qualifiedName?.asString()
+            if (returnQName != Unit::class.qualifiedName && returnQName != Long::class.qualifiedName) {
+                environment.logger.error(
+                    "ModifyingQuery '${functionDeclaration.simpleName.asString()}' must return Unit or Long, " +
+                        "but found '$returnQName'."
+                )
+                return null
+            }
+        } else {
+            if (returnType.typeParameters.isNotEmpty()) {
+                require(returnType.qualifiedName?.asString() == List::class.qualifiedName) {
+                    "Query functions must return either a single element (like an Entity) or List<E>"
+                }
             }
         }
 
         val query = queryValue.value as String
         val (signature, targetType) = getFunctionSignature(functionDeclaration)
-        val returnMany = returnType.qualifiedName?.asString() == List::class.qualifiedName
-
         val parameterNames = functionDeclaration.parameters.map { it.name?.getShortName() ?: "" }
-        val constructorParams = buildReturnTypeConstructor(functionDeclaration.returnType)
 
         val isNamed = NAMED_PARAM_REGEX.containsMatchIn(query)
         val hasPositional = query.contains('?')
@@ -111,15 +129,27 @@ class DaoClassVisitor(
             }
         }
 
-        return writeCustomQueryResult(
-            signature = signature,
-            targetType = targetType,
-            constructorParams = constructorParams,
-            parameterNames = parameterNames,
-            query = query,
-            returnMany = returnMany,
-            namedMode = isNamed,
-        )
+        return if (isModifying) {
+            writeModifyingQueryResult(
+                signature = signature,
+                targetType = targetType,
+                parameterNames = parameterNames,
+                query = query,
+                namedMode = isNamed,
+            )
+        } else {
+            val returnMany = returnType.qualifiedName?.asString() == List::class.qualifiedName
+            val constructorParams = buildReturnTypeConstructor(functionDeclaration.returnType)
+            writeCustomQueryResult(
+                signature = signature,
+                targetType = targetType,
+                constructorParams = constructorParams,
+                parameterNames = parameterNames,
+                query = query,
+                returnMany = returnMany,
+                namedMode = isNamed,
+            )
+        }
     }
 
     private fun writeCustomQueryResult(
@@ -165,6 +195,41 @@ class DaoClassVisitor(
 
              val result = DbOperations.$dbOperation(connection, ::createFromGenericData,
                 ${targetType}::class,
+                ${"\"\"\""}
+                    ${query.prependIndent()}
+                ${"\"\"\""}, $paramsArg)
+                        
+        """)
+
+        if (targetType == Unit::class.qualifiedName) {
+            append("     return")
+        } else {
+            append("     return result")
+        }
+        append("\n         }")
+    }
+
+    private fun writeModifyingQueryResult(
+        signature: String,
+        targetType: String?,
+        parameterNames: List<String>,
+        query: String,
+        namedMode: Boolean,
+    ) = buildString {
+        append("     ")
+        append("override ")
+        append(signature)
+
+        val paramsArg = if (namedMode) {
+            val entries = parameterNames.joinToString(", ") { name -> "\"$name\" to $name" }
+            "mapOf($entries)"
+        } else {
+            parameterNames.joinToString(", ")
+        }
+
+        append(
+            """ {
+             val result = DbOperations.executeModifyingQuery(connection,
                 ${"\"\"\""}
                     ${query.prependIndent()}
                 ${"\"\"\""}, $paramsArg)
