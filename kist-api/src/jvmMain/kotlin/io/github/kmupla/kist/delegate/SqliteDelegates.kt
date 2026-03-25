@@ -95,6 +95,10 @@ actual class SqliteCursor(private val resultSet: ResultSet) {
     }
 
     actual fun getType(index: Int): ColumnType {
+        if (isNull(index)) {
+            return ColumnType.TYPE_NULL
+        }
+
         return when (metadata.getColumnType(index + 1)) {
             Types.INTEGER,
             Types.SMALLINT,

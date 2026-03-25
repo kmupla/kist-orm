@@ -7,112 +7,113 @@ Data Access Objects (DAOs) provide the abstract interface to your database. They
 To create a DAO, define an interface that extends `KistDao<Entity, ID_Type>` and annotate it with `@Dao`.
 
 ```kotlin
-import io.knative.kist.Dao
-import io.knative.kist.KistDao
-import io.knative.kist.Query
+import io.github.kmupla.kist.Dao
+import io.github.kmupla.kist.KistDao
 
 @Dao
 interface PetDao : KistDao<Pet, String> {
     // KistDao provides built-in methods:
-    // - insert(entity: Pet)
-    // - update(entity: Pet)
-    // - deleteById(id: String)
+    // - insert(entity: Pet): Long?
+    // - update(entity: Pet): Int
+    // - deleteById(id: String): Int
     // - findById(id: String): Pet?
     // - findAll(): List<Pet>
     // - exists(id: String): Boolean
 }
 ```
 
-## Custom Queries
+## Custom SELECT Queries (`@Query`)
 
-You can define custom operations using the `@Query` annotation.
+Use `@Query` to declare custom SELECT statements. KSP generates the full implementation at compile time — no reflection at runtime.
 
-### Basic Selection
+### Positional Parameter Binding (`?`)
 
-Use standard SQL syntax.
-
-```kotlin
-@Query("SELECT * FROM pets WHERE name = 'Fido'")
-fun findFido(): Pet?
-```
-
-### Parameter Binding
-
-
-~Bind method parameters to your query using the `:` prefix.~ (not yet available)
+Parameters are bound left-to-right in the same order as the method signature.
 
 ```kotlin
 @Query("SELECT * FROM pets WHERE name = ?")
 fun findByName(name: String): List<Pet>
 
-@Query("SELECT * FROM pets WHERE age >= ?")
-fun findOlderThan(minAge: Int): List<Pet>
-```
-
-Bind the parameters using `?` and declaring the parameters in the same order:
-
-```kotlin
 @Query("SELECT * FROM person_table WHERE name like ? AND street like ?")
 fun findByNameStreet(name: String, streetPart: String): List<Person>
 ```
 
-### Dynamic Parameters & Null Checks
+### Named Parameter Binding (`:paramName`)
 
-KIST supports checking for optional parameters directly in SQL.
-
-```kotlin
-// If type is null, ignore the filter (return all types)
-@Query("SELECT * FROM pets WHERE (? IS NULL OR type = ?)")
-fun findByType(type: String?, type: String?): List<Pet>
-```
-
-### List Parameters (IN Clause)
-
-You can pass lists to handle SQL `IN` clauses.
+Use `:paramName` placeholders when you want query readability independent of parameter order. Each placeholder must match a method parameter name exactly.
 
 ```kotlin
-@Query("SELECT * FROM pets WHERE id IN (?)")
-fun findByIds(ids: List<String>): List<Pet>
+// Parameter order in the query does not have to match the method signature
+@Query("SELECT * FROM person_table WHERE street like :streetPart AND name like :name")
+fun findByNameStreetNamed(name: String, streetPart: String): List<Person>
 ```
+
+> Mixing `?` and `:name` placeholders in the same query is not allowed and will cause a compile-time error.
 
 ### Aggregations and DTOs
 
-Queries are not restricted to returning Entities. You can return primitives, counts, or custom Data Transfer Objects (DTOs).
+`@Query` is not limited to returning entities. You can return primitives or custom Data Transfer Objects (DTOs).
 
 ```kotlin
-data class PetSummary(val name: String, val age: Int)
+data class PersonMinDto(val id: Int, val name: String)
 
 @Dao
-interface PetDao : KistDao<Pet, String> {
-    
-    @Query("SELECT count(*) FROM pets")
+interface PersonDao : KistDao<Person, Int> {
+
+    @Query("SELECT count(*) FROM person_table")
     fun countAll(): Long
 
-    // Mapping columns to DTO properties automatically
-    @Query("SELECT name, age FROM pets WHERE is_adopted = 1")
-    fun getAdoptedSummaries(): List<PetSummary>
+    // Columns are mapped positionally to the DTO's primary constructor
+    @Query("SELECT id, name FROM person_table")
+    fun listMinimalReference(): List<PersonMinDto>
 }
 ```
+
+## Modifying Queries (`@ModifyingQuery`)
+
+Use `@ModifyingQuery` for custom INSERT, UPDATE, or DELETE statements. The return type must be either `Long` (number of rows affected) or `Unit` (when the count is not needed).
+
+```kotlin
+import io.github.kmupla.kist.ModifyingQuery
+
+@Dao
+interface PersonDao : KistDao<Person, Int> {
+
+    // Returns the number of rows updated
+    @ModifyingQuery("UPDATE person_table SET is_active = 0 WHERE birthday_timestamp < :threshold")
+    fun deactivateOlderThan(threshold: Long): Long
+
+    // Returns Unit when the row count is not needed
+    @ModifyingQuery("DELETE FROM person_table WHERE street = ?")
+    fun deleteByStreet(street: String): Unit
+}
+```
+
+Both positional (`?`) and named (`:paramName`) parameter styles are supported, with the same rules and validation as `@Query`. Mixing both styles in a single query is not allowed.
+
+### Return Types
+
+| Return type | Behaviour |
+|---|---|
+| `Long` | Returns the number of rows affected by the statement |
+| `Unit` | Executes the statement and discards the row count |
 
 ## Injecting DAOs
 
-Once your DAOs are defined and the application is configured, you can inject them into your services or controllers.
-
-Use the `injectDao` delegate for lazy retrieval.
+Once your DAOs are defined and the application is configured, inject them into your services using the `injectDao` delegate.
 
 ```kotlin
-import io.knative.kist.injectDao
+import io.github.kmupla.kist.injectDao
 
-object PetService {
-    // Automatically finds the generated implementation for PetDao
-    private val petDao: PetDao by injectDao()
+object PersonService {
+    // Automatically resolves the generated implementation for PersonDao
+    private val personDao: PersonDao by injectDao()
 
-    fun registerPet(pet: Pet) {
-        petDao.insert(pet)
+    fun deactivateOldAccounts(cutoff: Long) {
+        val affected = personDao.deactivateOlderThan(cutoff)
+        println("$affected accounts deactivated")
     }
-
-    fun find(id: String) = petDao.findById(id)
 }
 ```
 
-**Note:** Ensure `PersistenceContext.processAnnotations()` is called at startup before accessing any injected DAO.
+**Note:** `PersistenceContext.processAnnotations()` must be called at startup before any injected DAO is accessed.
